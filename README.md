@@ -1,4 +1,4 @@
- - ANIME CHALLENGE oIo
+ - ANIME CHALLENGE
 
  Requisitos para criação de anime API:
 
