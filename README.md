@@ -13,5 +13,5 @@
  Como iniciar o Projeto: 
 
 - Rodar o comando para instalação da node modules (pnpm, yarn, npm install)
-- Configurar o arquivo .env
+- Criar e configurar o arquivo .env na raiz do projeto assim como o exemplo (ctrl c)
 - Rodar o comando de criação do banco de dados: npx prisma migrate dev --name init
