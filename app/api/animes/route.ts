@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
 interface DateType {
-  name: string
+  id: number
+  name: string  
   imageUrl: string
   genre: string
   releaseDate: number
@@ -55,8 +56,121 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {}
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  const name = searchParams.get('name')
 
-export async function PUT() {}
+  try{
+    if(id){
+      const anime = await prisma.anime.findUnique({
+        where: { id: Number(id) },
+       })
 
-export async function DELETE() {}
+       if(!anime){
+        return NextResponse.json({ message: 'Anime não encontrado'}, { status: 404})
+    }
+
+    return NextResponse.json(anime, { status: 200 })
+
+    }
+
+    if(name){
+      const anime = await prisma.anime.findFirst({
+        where: { name: name },
+       })
+
+       if(!anime){
+        return NextResponse.json({ message: 'Anime não encontrado'}, { status: 404})
+    }
+
+    return NextResponse.json(anime, { status: 200 })
+
+    }
+
+  
+    const animes = await prisma.anime.findMany()
+    return NextResponse.json(animes, { status: 200 })
+  } catch(error){
+    console.error('Erro ao buscar os animes:', error)
+    return NextResponse.json({ message: 'Erro ao buscar anime' }, { status: 500 })
+  }
+
+}
+
+export async function PUT(request: Request) {
+  const data: DateType = await request.json()
+  const { id, name, imageUrl, genre, releaseDate, episodes, studio, popularity } = data
+  
+  if(!id){
+    NextResponse.json({ message: 'Id é obrigatório para atualizar' }, { status: 400 } )
+  }
+
+  try{
+
+
+
+  const animeExist = await prisma.anime.findUnique({
+    where: {
+      id: Number(id),
+    },
+  })
+
+  if(!animeExist){
+    NextResponse.json({ message: 'Anime não encontrado' }, { status: 404 } )
+  }
+
+  const updateData: Partial<Omit<DateType, 'id'>> = {};
+
+  if(name) updateData.name = name
+  if(imageUrl) updateData.imageUrl = imageUrl
+  if(genre) updateData.genre = genre
+  if(releaseDate) updateData.releaseDate = releaseDate
+  if(episodes) updateData.episodes = episodes
+  if(studio) updateData.studio = studio
+  if(popularity) updateData.popularity = popularity
+
+  const updateAnime = await prisma.anime.update({
+    where: { id: Number(id)},
+    data: updateData,
+  })
+
+  return NextResponse.json(updateAnime, { status: 200 })
+
+}catch(error){
+  console.error('Erro ao atulizar o anime: ', error)
+  return NextResponse.json({ message: 'Erro ao atulizar o anime' }, { status: 500 })
+}
+
+}
+
+export async function DELETE(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+
+  if(!id){
+    NextResponse.json({ message: 'Id é obrigatório para deletar' }, { status: 400 } )
+  }
+
+  try{
+    const animeExist = await prisma.anime.findUnique({
+      where: { 
+        id: Number(id),
+       }
+    })
+  
+    if(!animeExist){
+      return NextResponse.json({ message: 'Anime não encontrado' }, { status: 404 });
+    }
+
+    await prisma.anime.delete({
+      where: { id: Number(id) },
+    });
+
+    return NextResponse.json({ message: 'Anime deletado com sucesso' }, { status: 200 });
+  }catch(error){
+    console.error('Erro ao deletar anime:', error);
+    return NextResponse.json({ message: 'Erro ao deletar o anime' }, { status: 500 });
+  }
+  
+}
